@@ -1,0 +1,63 @@
+on:
+  push:
+    branches:
+      - main
+      - master
+      - web3-image
+  pull_request:
+
+name: Standard CI checks
+
+jobs:
+  Hadolint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: hadolint/hadolint-action@v1.5.0
+        with:
+          dockerfile: cljs-web3-ci/Dockerfile
+
+  docker_checks:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_DEFAULT_REGION }}
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v1
+
+      - name: Build cljs-web3-ci docker image
+        run: |
+          echo "Building on ${GITHUB_REF} branch"
+          DOCKER_BUILDKIT=1 docker build -t cljs-web3-ci:${{ github.sha }} -f Dockerfile .
+          echo "Successfully built docker image"
+
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: 'cljs-web3-ci:${{ github.sha }}'
+          format: 'table'
+          exit-code: '0'
+          ignore-unfixed: true
+          vuln-type: 'os,library'
+          severity: 'CRITICAL'
+
+      - name: Push docker images
+        env:
+          ECR_REGISTRY: ${{ secrets.ECR_REGISTRY }}
+          ECR_REPOSITORY: "cljs-web3-ci"
+        run: |
+          echo "Checking of images need to be pushed to docker registry"
+            echo "On the default branch will push to the registry with latest and ${{ github.sha }} tags"
+            docker tag hegex:${{ github.sha }} ${ECR_REGISTRY}/${ECR_REPOSITORY}:${{ github.sha }}
+            docker tag hegex:${{ github.sha }} ${ECR_REGISTRY}/${ECR_REPOSITORY}:latest
+            docker push ${ECR_REGISTRY}/${ECR_REPOSITORY}:${{ github.sha }}
+            docker push ${ECR_REGISTRY}/${ECR_REPOSITORY}:latest
