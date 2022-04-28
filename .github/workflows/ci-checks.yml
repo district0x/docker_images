@@ -14,9 +14,9 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - uses: hadolint/hadolint-action@v1.5.0
-        no-fail: true
         with:
           dockerfile: cljs-web3-ci/Dockerfile
+          no-fail: true
 
   docker_checks:
     runs-on: ubuntu-latest
