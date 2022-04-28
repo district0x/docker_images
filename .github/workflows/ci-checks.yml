@@ -14,6 +14,7 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - uses: hadolint/hadolint-action@v1.5.0
+        no-fail: true
         with:
           dockerfile: cljs-web3-ci/Dockerfile
 
@@ -37,7 +38,7 @@ jobs:
       - name: Build cljs-web3-ci docker image
         run: |
           echo "Building on ${GITHUB_REF} branch"
-          DOCKER_BUILDKIT=1 docker build -t cljs-web3-ci:${{ github.sha }} -f Dockerfile .
+          DOCKER_BUILDKIT=1 docker build -t cljs-web3-ci:${{ github.sha }} -f cljs-web3-ci/Dockerfile .
           echo "Successfully built docker image"
 
       - name: Run Trivy vulnerability scanner
