@@ -17,8 +17,9 @@ jobs:
         with:
           dockerfile: cljs-web3-ci/Dockerfile
           no-fail: true
+          ignore: "DL3008,DL3059,DL4006"
 
-  docker_checks:
+  docker_build:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -58,7 +59,7 @@ jobs:
         run: |
           echo "Checking of images need to be pushed to docker registry"
             echo "On the default branch will push to the registry with latest and ${{ github.sha }} tags"
-            docker tag hegex:${{ github.sha }} ${ECR_REGISTRY}/${ECR_REPOSITORY}:${{ github.sha }}
-            docker tag hegex:${{ github.sha }} ${ECR_REGISTRY}/${ECR_REPOSITORY}:latest
+            docker tag cljs-web3-ci:${{ github.sha }} ${ECR_REGISTRY}/${ECR_REPOSITORY}:${{ github.sha }}
+            docker tag cljs-web3-ci:${{ github.sha }} ${ECR_REGISTRY}/${ECR_REPOSITORY}:latest
             docker push ${ECR_REGISTRY}/${ECR_REPOSITORY}:${{ github.sha }}
             docker push ${ECR_REGISTRY}/${ECR_REPOSITORY}:latest
