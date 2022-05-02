@@ -1,4 +1,4 @@
-FROM cimg/clojure:1.10.3
+FROM cimg/clojure:1.11.1
 LABEL com.circleci.preserve-entrypoint=true
 
 ENV PATH /home/circleci/.yarn/bin:$PATH
@@ -25,6 +25,7 @@ RUN curl -sSL https://dl.google.com/linux/linux_signing_key.pub | apt-key add - 
 	&& echo "deb https://dl.google.com/linux/chrome/deb/ stable main" >  /etc/apt/sources.list.d/google-chrome.list \
   && apt-get update && apt-get upgrade -yqq \
   && apt-get install -y --no-install-recommends \
+        rlwrap \
         fonts-liberation \
         fontconfig \
         fonts-ipafont-gothic \
