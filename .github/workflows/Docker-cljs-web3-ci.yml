@@ -62,6 +62,10 @@ jobs:
             echo "Checking of images need to be pushed to docker registry"
             echo "On the default branch will push to the registry with ${{ matrix.nodejs }}-latest and ${{ matrix.nodejs }}-${{ github.sha }} tags"
             docker tag cljs-web3-ci:${{ matrix.nodejs }}-${{ github.sha }} ${ECR_REGISTRY}/${ECR_REPOSITORY}:${{ matrix.nodejs }}-${{ github.sha }}
+            docker tag cljs-web3-ci:${{ matrix.nodejs }}-${{ github.sha }} ${ECR_REGISTRY}/${ECR_REPOSITORY}:${{ matrix.nodejs }}-latest
+
+            docker push ${ECR_REGISTRY}/${ECR_REPOSITORY}:${{ matrix.nodejs }}-${{ github.sha }}
+            docker push ${ECR_REGISTRY}/${ECR_REPOSITORY}:${{ matrix.nodejs }}-latest
 
             # Push legacy NodeJs v12 as a latest
             if [[ ${{ matrix.nodejs }} == "12.22.12" ]]; then
