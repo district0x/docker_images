@@ -3,11 +3,9 @@ on:
     branches:
       - main
       - master
-      - web3-image
-      - add_nodejs16_support
   pull_request:
 
-name: Standard CI checks
+name: Release docker images
 
 jobs:
   Hadolint:
@@ -24,7 +22,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        nodejs: ["12.22.12", "16.17.0"]
+        nodejs: ["12.22.12", "16.17.0" "18.7.0"]
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
@@ -63,8 +61,11 @@ jobs:
         run: |
             echo "Checking of images need to be pushed to docker registry"
             echo "On the default branch will push to the registry with ${{ matrix.nodejs }}-latest and ${{ matrix.nodejs }}-${{ github.sha }} tags"
-            echo "In addition, NODEJS 12 image will be pushed with latest tag"
             docker tag cljs-web3-ci:${{ matrix.nodejs }}-${{ github.sha }} ${ECR_REGISTRY}/${ECR_REPOSITORY}:${{ matrix.nodejs }}-${{ github.sha }}
-            # docker tag cljs-web3-ci:${{ github.sha }} ${ECR_REGISTRY}/${ECR_REPOSITORY}:latest
-            docker push ${ECR_REGISTRY}/${ECR_REPOSITORY}:${{ matrix.nodejs }}-${{ github.sha }}
-            # docker push ${ECR_REGISTRY}/${ECR_REPOSITORY}:latest
+
+            # Push legacy NodeJs v12 as a latest
+            if [[ ${{ matrix.nodejs }} == "12.22.12" ]]; then
+              echo "In addition, NODEJS 12 image will be pushed with latest tag"
+              docker tag cljs-web3-ci:12.22.12-${{ github.sha }} ${ECR_REGISTRY}/${ECR_REPOSITORY}:latest
+              docker push ${ECR_REGISTRY}/${ECR_REPOSITORY}:latest
+            fi
