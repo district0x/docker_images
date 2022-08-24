@@ -4,6 +4,7 @@ on:
       - main
       - master
       - web3-image
+      - add_nodejs16_support
   pull_request:
 
 name: Standard CI checks
