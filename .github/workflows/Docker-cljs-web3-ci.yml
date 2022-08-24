@@ -70,6 +70,6 @@ jobs:
             # Push legacy NodeJs v12 as a latest
             if [[ ${{ matrix.nodejs }} == "12.22.12" ]]; then
               echo "In addition, NODEJS 12 image will be pushed with latest tag"
-              docker tag cljs-web3-ci:12.22.12-${{ github.sha }} ${ECR_REGISTRY}/${ECR_REPOSITORY}:latest
+              docker tag cljs-web3-ci:node-12.22.12-${{ github.sha }} ${ECR_REGISTRY}/${ECR_REPOSITORY}:latest
               docker push ${ECR_REGISTRY}/${ECR_REPOSITORY}:latest
             fi
