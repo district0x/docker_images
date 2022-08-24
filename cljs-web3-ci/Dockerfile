@@ -2,7 +2,7 @@ FROM cimg/clojure:1.11.1
 LABEL com.circleci.preserve-entrypoint=true
 
 ENV PATH /home/circleci/.yarn/bin:$PATH
-ENV NODE_VERSION 12.22.12
+ARG NODE_VERSION 12.22.12
 ENV YARN_VERSION 1.22.19
 ENV CHROME_VERSION 104
 ENV DISPLAY=":99"
