@@ -41,13 +41,13 @@ jobs:
       - name: Build cljs-web3-ci:${{ matrix.nodejs }} docker image
         run: |
           echo "Building on ${GITHUB_REF} branch"
-          DOCKER_BUILDKIT=1 docker build --build-arg=NODE_VERSION=${{ matrix.nodejs }} -t cljs-web3-ci:${{ matrix.nodejs }}-${{ github.sha }} -f cljs-web3-ci/Dockerfile .
+          DOCKER_BUILDKIT=1 docker build --build-arg=NODE_VERSION=${{ matrix.nodejs }} -t cljs-web3-ci:node-${{ matrix.nodejs }}-${{ github.sha }} -f cljs-web3-ci/Dockerfile .
           echo "Successfully built docker image"
 
       - name: Run Trivy vulnerability scanner
         uses: aquasecurity/trivy-action@master
         with:
-          image-ref: 'cljs-web3-ci:${{ matrix.nodejs }}-${{ github.sha }}'
+          image-ref: 'cljs-web3-ci:node-${{ matrix.nodejs }}-${{ github.sha }}'
           format: 'table'
           exit-code: '0'
           ignore-unfixed: true
@@ -60,12 +60,12 @@ jobs:
           ECR_REPOSITORY: "cljs-web3-ci"
         run: |
             echo "Checking of images need to be pushed to docker registry"
-            echo "On the default branch will push to the registry with ${{ matrix.nodejs }}-latest and ${{ matrix.nodejs }}-${{ github.sha }} tags"
-            docker tag cljs-web3-ci:${{ matrix.nodejs }}-${{ github.sha }} ${ECR_REGISTRY}/${ECR_REPOSITORY}:${{ matrix.nodejs }}-${{ github.sha }}
-            docker tag cljs-web3-ci:${{ matrix.nodejs }}-${{ github.sha }} ${ECR_REGISTRY}/${ECR_REPOSITORY}:${{ matrix.nodejs }}-latest
+            echo "On the default branch will push to the registry with ${{ matrix.nodejs }} and ${{ matrix.nodejs }}-${{ github.sha }} tags"
+            docker tag cljs-web3-ci:node-${{ matrix.nodejs }}-${{ github.sha }} ${ECR_REGISTRY}/${ECR_REPOSITORY}:node-${{ matrix.nodejs }}-${{ github.sha }}
+            docker tag cljs-web3-ci:node-${{ matrix.nodejs }}-${{ github.sha }} ${ECR_REGISTRY}/${ECR_REPOSITORY}:node-${{ matrix.nodejs }}
 
-            docker push ${ECR_REGISTRY}/${ECR_REPOSITORY}:${{ matrix.nodejs }}-${{ github.sha }}
-            docker push ${ECR_REGISTRY}/${ECR_REPOSITORY}:${{ matrix.nodejs }}-latest
+            docker push ${ECR_REGISTRY}/${ECR_REPOSITORY}:node-${{ matrix.nodejs }}-${{ github.sha }}
+            docker push ${ECR_REGISTRY}/${ECR_REPOSITORY}:node-${{ matrix.nodejs }}
 
             # Push legacy NodeJs v12 as a latest
             if [[ ${{ matrix.nodejs }} == "12.22.12" ]]; then
