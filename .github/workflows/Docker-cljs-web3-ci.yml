@@ -1,0 +1,75 @@
+on:
+  push:
+    branches:
+      - main
+      - master
+  pull_request:
+
+name: Release docker images
+
+jobs:
+  Hadolint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: hadolint/hadolint-action@v2.1.0
+        with:
+          dockerfile: cljs-web3-ci/Dockerfile
+          no-fail: true
+          ignore: "DL3008,DL3059,DL4006"
+
+  docker_build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        nodejs: ["12.22.12", "16.17.0", "18.7.0"]
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_DEFAULT_REGION }}
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v1
+
+      - name: Build cljs-web3-ci:${{ matrix.nodejs }} docker image
+        run: |
+          echo "Building on ${GITHUB_REF} branch"
+          DOCKER_BUILDKIT=1 docker build --build-arg=NODE_VERSION=${{ matrix.nodejs }} -t cljs-web3-ci:node-${{ matrix.nodejs }}-${{ github.sha }} -f cljs-web3-ci/Dockerfile .
+          echo "Successfully built docker image"
+
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: 'cljs-web3-ci:node-${{ matrix.nodejs }}-${{ github.sha }}'
+          format: 'table'
+          exit-code: '0'
+          ignore-unfixed: true
+          vuln-type: 'os,library'
+          severity: 'CRITICAL'
+
+      - name: Push docker images
+        env:
+          ECR_REGISTRY: ${{ secrets.ECR_REGISTRY }}
+          ECR_REPOSITORY: "cljs-web3-ci"
+        run: |
+            echo "Checking of images need to be pushed to docker registry"
+            echo "On the default branch will push to the registry with ${{ matrix.nodejs }} and ${{ matrix.nodejs }}-${{ github.sha }} tags"
+            docker tag cljs-web3-ci:node-${{ matrix.nodejs }}-${{ github.sha }} ${ECR_REGISTRY}/${ECR_REPOSITORY}:node-${{ matrix.nodejs }}-${{ github.sha }}
+            docker tag cljs-web3-ci:node-${{ matrix.nodejs }}-${{ github.sha }} ${ECR_REGISTRY}/${ECR_REPOSITORY}:node-${{ matrix.nodejs }}
+
+            docker push ${ECR_REGISTRY}/${ECR_REPOSITORY}:node-${{ matrix.nodejs }}-${{ github.sha }}
+            docker push ${ECR_REGISTRY}/${ECR_REPOSITORY}:node-${{ matrix.nodejs }}
+
+            # Push legacy NodeJs v12 as a latest
+            if [[ ${{ matrix.nodejs }} == "12.22.12" ]]; then
+              echo "In addition, NODEJS 12 image will be pushed with latest tag"
+              docker tag cljs-web3-ci:node-12.22.12-${{ github.sha }} ${ECR_REGISTRY}/${ECR_REPOSITORY}:latest
+              docker push ${ECR_REGISTRY}/${ECR_REPOSITORY}:latest
+            fi
