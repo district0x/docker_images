@@ -4,7 +4,9 @@ RUN wget https://raw.githubusercontent.com/babashka/babashka/master/resources/BA
 RUN export BB_VERSION=$(cat /tmp/bb_version) \
     && wget "https://github.com/babashka/babashka-dev-builds/releases/download/v${BB_VERSION}/babashka-${BB_VERSION}-linux-amd64-static.tar.gz" -q -O /tmp/babashka-static.tar.gz \
     && tar -xf  /tmp/babashka-static.tar.gz
+
 RUN ./bb --version
+
 
 FROM cimg/clojure:1.11.1
 WORKDIR /home/circleci/project
@@ -13,13 +15,13 @@ LABEL com.circleci.preserve-entrypoint=true
 ENV PATH /home/circleci/.yarn/bin:$PATH
 ARG NODE_VERSION=12.22.12
 ENV YARN_VERSION 1.22.19
-ENV CHROME_VERSION 104
 ENV DISPLAY=":99"
 
 USER root
 
 ENV NODE_VERSION="${NODE_VERSION}"
-RUN wget -O node.tar.gz "https://nodejs.org/dist/latest-v12.x/node-v${NODE_VERSION}-linux-x64.tar.gz" \
+
+RUN wget -O node.tar.gz "https://nodejs.org/dist/v${NODE_VERSION}/node-v${NODE_VERSION}-linux-x64.tar.gz" \
   && tar -xzf node.tar.gz -C /usr/local --strip-components=1 \
 	&& rm node.tar.gz \
   && ln -s /usr/local/bin/node /usr/local/bin/nodejs
