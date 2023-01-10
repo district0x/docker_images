@@ -22,7 +22,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        nodejs: ["12.22.12", "v16.15.1", "v16.19.0", "18.13.0"]
+        nodejs: ["12.22.12", "16.15.1", "16.19.0", "18.13.0"]
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
