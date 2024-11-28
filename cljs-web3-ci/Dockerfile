@@ -13,18 +13,18 @@ WORKDIR /home/circleci/project
 LABEL com.circleci.preserve-entrypoint=true
 
 ENV PATH /home/circleci/.yarn/bin:$PATH
-ARG NODE_VERSION=18.19.0
-ENV YARN_VERSION=1.22.21
+ARG NODE_VERSION=20.12.1
+ENV YARN_VERSION=1.22.22
 ENV DISPLAY=":99"
 
 USER root
 
 ENV NODE_VERSION="${NODE_VERSION}"
 
-RUN wget -O node.tar.gz "https://nodejs.org/dist/v${NODE_VERSION}/node-v${NODE_VERSION}-linux-x64.tar.gz" \
-  && tar -xzf node.tar.gz -C /usr/local --strip-components=1 \
-	&& rm node.tar.gz \
-  && ln -s /usr/local/bin/node /usr/local/bin/nodejs
+RUN wget -O node.tar.gz "https://nodejs.org/dist/v${NODE_VERSION}/node-v${NODE_VERSION}-linux-x64.tar.gz" && \
+  tar -xzf node.tar.gz -C /usr/local --strip-components=1 && \
+	rm node.tar.gz && \
+  ln -s /usr/local/bin/node /usr/local/bin/nodejs
 
 RUN curl -L -o yarn.tar.gz "https://yarnpkg.com/downloads/${YARN_VERSION}/yarn-v${YARN_VERSION}.tar.gz" && \
 	tar -xzf yarn.tar.gz -C /opt/ && \
