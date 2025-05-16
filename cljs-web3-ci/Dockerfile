@@ -21,12 +21,12 @@ USER root
 
 ENV NODE_VERSION="${NODE_VERSION}"
 
-RUN wget -O node.tar.gz "https://nodejs.org/dist/v${NODE_VERSION}/node-v${NODE_VERSION}-linux-x64.tar.gz" && \
+RUN wget --no-verbose -O node.tar.gz "https://nodejs.org/dist/v${NODE_VERSION}/node-v${NODE_VERSION}-linux-x64.tar.gz" && \
   tar -xzf node.tar.gz -C /usr/local --strip-components=1 && \
 	rm node.tar.gz && \
   ln -s /usr/local/bin/node /usr/local/bin/nodejs
 
-RUN curl -L -o yarn.tar.gz "https://yarnpkg.com/downloads/${YARN_VERSION}/yarn-v${YARN_VERSION}.tar.gz" && \
+RUN wget --no-verbose -O yarn.tar.gz "https://yarnpkg.com/downloads/${YARN_VERSION}/yarn-v${YARN_VERSION}.tar.gz" && \
 	tar -xzf yarn.tar.gz -C /opt/ && \
 	rm yarn.tar.gz && \
 	ln -s /opt/yarn-v${YARN_VERSION}/bin/yarn /usr/local/bin/yarn && \
