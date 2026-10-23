@@ -1,19 +1,18 @@
-FROM cimg/clojure:1.11.1 as pull_bb
+FROM cimg/clojure:1.12.6-openjdk-17.0 AS pull_bb
 WORKDIR /tmp/
-RUN wget https://raw.githubusercontent.com/babashka/babashka/master/resources/BABASHKA_VERSION -q  -O /tmp/bb_version
-RUN export BB_VERSION=$(cat /tmp/bb_version) \
-    && wget "https://github.com/babashka/babashka-dev-builds/releases/download/v${BB_VERSION}/babashka-${BB_VERSION}-linux-amd64-static.tar.gz" -q -O /tmp/babashka-static.tar.gz \
-    && tar -xf  /tmp/babashka-static.tar.gz
+ARG BB_VERSION=1.13.226
+RUN wget "https://github.com/babashka/babashka/releases/download/v${BB_VERSION}/babashka-${BB_VERSION}-linux-amd64-static.tar.gz" -q -O /tmp/babashka-static.tar.gz \
+    && tar -xf /tmp/babashka-static.tar.gz
 
 RUN ./bb --version
 
 
-FROM cimg/clojure:1.11.1
+FROM cimg/clojure:1.12.6-openjdk-17.0
 WORKDIR /home/circleci/project
 LABEL com.circleci.preserve-entrypoint=true
 
 ENV PATH /home/circleci/.yarn/bin:$PATH
-ARG NODE_VERSION=20.12.1
+ARG NODE_VERSION=24.22.1
 ENV YARN_VERSION=1.22.22
 ENV DISPLAY=":99"
 
@@ -33,8 +32,8 @@ RUN curl -L -o yarn.tar.gz "https://yarnpkg.com/downloads/${YARN_VERSION}/yarn-v
 	ln -s /opt/yarn-v${YARN_VERSION}/bin/yarnpkg /usr/local/bin/yarnpkg
 
 # Chromium headless (via chromium-browser)
-RUN curl -sSL https://dl.google.com/linux/linux_signing_key.pub | apt-key add - \
-	&& echo "deb https://dl.google.com/linux/chrome/deb/ stable main" >  /etc/apt/sources.list.d/google-chrome.list \
+RUN curl -sSL https://dl.google.com/linux/linux_signing_key.pub | gpg --dearmor -o /usr/share/keyrings/google-chrome.gpg \
+	&& echo "deb [arch=amd64 signed-by=/usr/share/keyrings/google-chrome.gpg] https://dl.google.com/linux/chrome/deb/ stable main" >  /etc/apt/sources.list.d/google-chrome.list \
   && apt-get update && apt-get upgrade -yqq \
   && apt-get install -y --no-install-recommends \
         rlwrap \
@@ -52,6 +51,6 @@ RUN curl -sSL https://dl.google.com/linux/linux_signing_key.pub | apt-key add - 
 
 RUN	printf '#!/bin/sh\nXvfb :99 -screen 0 1280x1024x24 &\nexec "$@"\n' | tee /docker-entrypoint.sh && \
 	chmod +x /docker-entrypoint.sh
-COPY --from=pull_bb /tmp/bb /usr/bin/
+COPY --from=pull_bb /tmp/bb /usr/local/bin/bb
 
 USER circleci
